@@ -1,0 +1,10 @@
+# x = input("Enter a number: ")
+# y = input("Enter another number: ")
+# print(x + y)
+
+x = 1
+y = 2
+z = x
+x = y
+y = z 
+print(x, y)
