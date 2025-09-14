@@ -37,5 +37,8 @@
 # y = int(input())
 # print(x * y)
 
-z = y = x = 1
-print(x,y,x, sep='*')
+# z = y = x = 1
+# print(x,y,x, sep='*')
+
+y = 2 + 3 * 5
+print(y)
