@@ -33,6 +33,9 @@
 
 # print(y)
 
-x =input()
-y = int(input())
-print(x * y)
+# x =input()
+# y = int(input())
+# print(x * y)
+
+z = y = x = 1
+print(x,y,x, sep='*')
