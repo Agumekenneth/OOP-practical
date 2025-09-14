@@ -40,5 +40,10 @@
 # z = y = x = 1
 # print(x,y,x, sep='*')
 
-y = 2 + 3 * 5
-print(y)
+# y = 2 + 3 * 5
+# print(y)
+
+x = 1 / 2 + 3 // 3 + 4 ** 2
+print(x)
+
+
