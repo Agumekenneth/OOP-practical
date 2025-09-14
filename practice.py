@@ -17,10 +17,22 @@
 
 # print(y)
 
-x = int(input())
+# x = int(input())
+# y = int(input())
+
+# x = x / y
+# y = y / x
+
+# print(y)
+
+# x = int(input())
+# y = int(input())
+
+# x = x // y
+# y = y // x
+
+# print(y)
+
+x =input()
 y = int(input())
-
-x = x / y
-y = y / x
-
-print(y)
+print(x * y)
