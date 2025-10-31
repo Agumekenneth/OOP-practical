@@ -18,30 +18,36 @@ class BankAccount(ABC):
     @abstractmethod
     def deposit(self, amount):
         pass
+    
 class SavingsAccount(BankAccount):
     def __init__(self, account_number, balance = 0, interest_rate = 0.05):
             super().__init__(account_number, balance)
             self.interest_rate = interest_rate
+
     def deposit(self, amount):
         if amount > 0:
             self.balance += amount
             print(f"Deposited UGX {amount} to savings account {self.account_number}. New balance: UGX {self.balance}")
         else:
             print("Invalide deposit amount")
+
     def withdraw(self, amount):
         if 0 < amount <= self.balance:
             self.balance -= amount
             print(f" Withdrew UGX {amount} from savings account {self.account_number}. New balance: UGX: {self.balance}")
         else:
             print("Invalid withdrawal amount or insufficient balance")
+
     def calaculate_interest(self):
         interest = self.balance * self.interest_rate
         self.deposit(interest)
         print(f"Interest of UGX {interest} added. New balance: UGX {self.balance}")
+
 class CheckingAccount(BankAccount):
     def __init__(self, account_number, balance = 0, overdraft_limit = 5000):
         super().__init__(account_number, balance)
         self.overdraft_limit = overdraft_limit
+
     def deposit(self, amount):
         if 0 < amount <= self.balance + self.overdraft_limit:
             self.balance -= amount
@@ -54,6 +60,7 @@ class CheckingAccount(BankAccount):
 class BankSystem:
     def __init__(self):
         self.accounts = {}
+
     def create_account(self):
         account_type = input("Enter account type (savings/checking):").strip().lower()
         account_number = input('Enter account number:').strip()
@@ -68,6 +75,7 @@ class BankSystem:
             print("Invalid account type. Please choose 'savings or 'checking'.")
         return
     print("{account_type.capitalize()} account {account_number} created.")
+
     def deposit(self):
         account_number =input('Enter account number:').strip()
         amount = float(input("Enter deposit amount:"))
@@ -75,11 +83,31 @@ class BankSystem:
             self.accounts[account_number].deposit(amount)
         else:
             print("Account not found.")
+
     def withdraw(self):
         account_number = input("Enter account number:").strip()
         amount = float(input("Enter withdrawal amount:"))
         if account_number in self.accounts:
             self.accounts[account_number].withdraw(amount)
+        else:
+            print("Account not found.")
+    def check_balance(self):
+        account_number = input("Enter account number:").strip()
+        if account_number in self.accounts:
+            self.accounts[account_number].check_balance()
+        else:
+            print("Account not found.")
+
+    def user_interface(self):
+        while True:
+            print("\n--- Bank Account Manager ---")
+            print("1. Create Account")
+            print("2. Deposit")
+            print("3. Withdraw")
+            print("4. Check Balance")
+            print("5. Exit")
+        
+            choice = input("Choose an option: ").strip()
 
 
         
