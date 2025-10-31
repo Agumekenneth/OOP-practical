@@ -39,4 +39,14 @@ class SavingsAccount(BankAccount):
         self.deposit(interest)
         print(f"Interest of UGX {interest} added. New balance: UGX {self.balance}")
 class CheckingAccount(BankAccount):
+    def __init__(self, account_number, balance = 0, overdraft_limit = 5000):
+        super().__init__(account_number, balance)
+        self.overdraft_limit = overdraft_limit
+    def deposit(self, amount):
+        if 0 < amount <= self.balance + self.overdraft_limit:
+            self.balance -= amount
+            print(f"Withdrew UGX {amount}from checking account{self.account_number}. New balance{self.balance}:")
+        else:
+            print("Invalid withdrawal amount or exceeds overdraft limit")
+        
         
