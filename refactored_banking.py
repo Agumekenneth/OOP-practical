@@ -48,7 +48,21 @@ class CheckingAccount(BankAccount):
             print(f"Withdrew UGX {amount}from checking account{self.account_number}. New balance{self.balance}:")
         else:
             print("Invalid withdrawal amount or exceeds overdraft limit")
-    accounts = []   
+    def check_balance(self):
+        print(f"Checking Account {self.account_number} balance: UGX {self.balance}")
+        
+class BankSystem:
+    def __init__(self):
+        self.accounts = {}
+    def create_account(self):
+        account_type = input("Enter account type (savings/checking):").strip().lower()
+        account_number = input('Enter account number:').strip()
+        if account_number in self.accounts:
+            print("Account number already exists.")
+            return
+        if account_type == 'savings':
+            self.accounts[account_number] = SavingsAccount(account_number)
+            print(f"Savings account {account_number} created.")
 
         
         
