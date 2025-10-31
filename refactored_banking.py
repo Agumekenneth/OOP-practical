@@ -18,7 +18,7 @@ class BankAccount(ABC):
     @abstractmethod
     def deposit(self, amount):
         pass
-    
+
 class SavingsAccount(BankAccount):
     def __init__(self, account_number, balance = 0, interest_rate = 0.05):
             super().__init__(account_number, balance)
@@ -108,6 +108,19 @@ class BankSystem:
             print("5. Exit")
         
             choice = input("Choose an option: ").strip()
+            if choice == "1":
+                self.create_account()
+            elif choice == "2":
+                self.deposit()
+            elif choice == "3":
+                self.withdraw()
+            elif choice == "4":
+                self.check_balance()
+            elif choice == "5":
+                print("Exiting the program.")
+                break
+            else:
+                print("Invalid choice. Please try again.")
 
 
         
