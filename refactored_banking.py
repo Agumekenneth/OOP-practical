@@ -48,6 +48,7 @@ class CheckingAccount(BankAccount):
             print(f"Withdrew UGX {amount}from checking account{self.account_number}. New balance{self.balance}:")
         else:
             print("Invalid withdrawal amount or exceeds overdraft limit")
-    
+    accounts = []   
+
         
         
