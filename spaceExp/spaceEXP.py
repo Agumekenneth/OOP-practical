@@ -29,7 +29,7 @@ class GameObject:
         return self._x, self._y
 
     def collides_with(self, other):
-        """Check simple collision with another object"""
+        """Simple collision detection"""
         x1, y1 = self._x, self._y
         x2, y2 = other._x, other._y
         return abs(x1 - x2) < self._size and abs(y1 - y2) < other._size
@@ -44,10 +44,12 @@ class Player(GameObject):
         self._speed = 15
 
     def move_left(self):
-        self.move(-self._speed, 0)
+        if self._x > 0:
+            self.move(-self._speed, 0)
 
     def move_right(self):
-        self.move(self._speed, 0)
+        if self._x < 770:
+            self.move(self._speed, 0)
 
     def shoot(self):
         return Bullet(self.canvas, self._x + 12, self._y - 15, -10)
@@ -59,8 +61,8 @@ class Alien(GameObject):
 
     def __init__(self, canvas, x, y):
         super().__init__(canvas, x, y, 30, 'red')
-        self.vx = random.choice([-1, 1])
-        self.vy = 0.5  # slower alien
+        self.vx = random.choice([-2, 2])   # faster horizontal speed
+        self.vy = 1.2                      # faster downward speed
         self._direction_timer = time.time()
 
     def update(self):
@@ -78,7 +80,7 @@ class Planet(GameObject):
 
     def __init__(self, canvas, x, y, size):
         super().__init__(canvas, x, y, size, random.choice(['green', 'blue', 'yellow']))
-        self.vy = random.uniform(0.05, 0.15)
+        self.vy = random.uniform(0.4, 0.7)  # faster than before
 
     def update(self):
         self.move(0, self.vy)
@@ -102,7 +104,7 @@ class Bullet(GameObject):
 
 # ========== MAIN GAME CLASS ==========
 class SpaceExplorerGame:
-    """Main game controller that manages all objects."""
+    """Main game controller that manages all objects and game state."""
 
     def __init__(self, root):
         self.root = root
@@ -110,78 +112,97 @@ class SpaceExplorerGame:
         self.canvas = tk.Canvas(root, width=800, height=600, bg='black')
         self.canvas.pack()
 
+        # Game state variables
         self.player = Player(self.canvas, 370, 500)
         self.aliens, self.planets, self.bullets = [], [], []
-
         self.lives = 5
         self.score = 0
+        self.paused = False  # NEW FEATURE
+
+        # UI elements
         self.lives_label = self.canvas.create_text(60, 30, text="Lives: 5", fill='white', font=('Arial', 16))
         self.score_label = self.canvas.create_text(740, 30, text="Score: 0", fill='white', font=('Arial', 16))
+        self.pause_label = None
 
-        self.last_score_update = int(time.time() * 1000)
-
-        self.root.bind("<Left>", lambda e: self.player.move_left())
-        self.root.bind("<Right>", lambda e: self.player.move_right())
-        self.root.bind("<space>", lambda e: self.bullets.append(self.player.shoot()))
+        # Bind controls
+        self.root.bind("<Left>", lambda e: self.player.move_left() if not self.paused else None)
+        self.root.bind("<Right>", lambda e: self.player.move_right() if not self.paused else None)
+        self.root.bind("<space>", lambda e: self.shoot_bullet())
+        self.root.bind("p", lambda e: self.toggle_pause())  # NEW: Pause/Resume with 'P'
 
         self.update_game()
 
+    def shoot_bullet(self):
+        """Fire a bullet only if the game isn’t paused"""
+        if not self.paused:
+            self.bullets.append(self.player.shoot())
+
+    def toggle_pause(self):
+        """Pause or resume the game"""
+        self.paused = not self.paused
+        if self.paused:
+            self.pause_label = self.canvas.create_text(
+                400, 300, text="PAUSED", fill='yellow', font=('Arial', 40, 'bold')
+            )
+        else:
+            if self.pause_label:
+                self.canvas.delete(self.pause_label)
+                self.pause_label = None
+
     def update_game(self):
         """Main game loop — updates all entities and checks collisions."""
+        if not self.paused:
+            # Add random planets
+            if random.random() < 0.01:
+                self.planets.append(Planet(self.canvas, random.randint(0, 780), 0, random.randint(20, 40)))
 
-        # Add random planets
-        if random.random() < 0.01:
-            self.planets.append(Planet(self.canvas, random.randint(0, 780), 0, random.randint(20, 40)))
+            # Add random aliens
+            if random.random() < 0.03:
+                self.aliens.append(Alien(self.canvas, random.randint(0, 780), 0))
 
-        # Add random aliens
-        if random.random() < 0.02:
-            self.aliens.append(Alien(self.canvas, random.randint(0, 780), 0))
+            # Update planets
+            for planet in self.planets[:]:
+                planet.update()
 
-        # Update planets
-        for planet in self.planets[:]:
-            planet.update()
-
-        # Update aliens
-        for alien in self.aliens[:]:
-            alien.update()
-            # Collision with player
-            if alien.collides_with(self.player):
-                alien.destroy()
-                self.aliens.remove(alien)
-                self.lives -= 1
-                self.update_ui()
-                if self.lives <= 0:
-                    self.game_over()
-                    return
-
-        # Update bullets and handle collisions
-        for bullet in self.bullets[:]:
-            bullet.update()
+            # Update aliens
             for alien in self.aliens[:]:
-                if bullet.collides_with(alien):
-                    bullet.destroy()
+                alien.update()
+                # Collision with player
+                if alien.collides_with(self.player):
                     alien.destroy()
-                    self.bullets.remove(bullet)
                     self.aliens.remove(alien)
-                    self.score += 10
+                    self.lives -= 1
                     self.update_ui()
-                    break
+                    if self.lives <= 0:
+                        self.game_over()
+                        return
 
-        # Add passive time-based scoring
-        current_time = int(time.time() * 1000)
-        if current_time - self.last_score_update >= 1000:
-            self.score += 1
-            self.last_score_update = current_time
-            self.update_ui()
+            # Update bullets and handle collisions
+            for bullet in self.bullets[:]:
+                bullet.update()
+                for alien in self.aliens[:]:
+                    if bullet.collides_with(alien):
+                        bullet.destroy()
+                        alien.destroy()
+                        if bullet in self.bullets:
+                            self.bullets.remove(bullet)
+                        if alien in self.aliens:
+                            self.aliens.remove(alien)
+                        self.score += 10  # ✅ Score now increases ONLY when alien is hit
+                        self.update_ui()
+                        break
 
-        self.root.after(60, self.update_game)
+        self.root.after(40, self.update_game)  # slightly faster refresh = smoother gameplay
 
     def update_ui(self):
+        """Update the score and lives labels"""
         self.canvas.itemconfig(self.score_label, text=f"Score: {self.score}")
         self.canvas.itemconfig(self.lives_label, text=f"Lives: {self.lives}")
 
     def game_over(self):
+        """Display game over message"""
         self.canvas.create_text(400, 300, text="GAME OVER", fill='red', font=('Arial', 40, 'bold'))
+        self.paused = True
 
 
 # ========== RUN THE GAME ==========
