@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import math
+import time
 
 class Entity:
     """
@@ -10,6 +10,8 @@ class Entity:
     """
     def __init__(self, canvas, x, y, color, tags):
         self.canvas = canvas
+        # store color so subclasses can reuse it
+        self.color = color
         self.id = canvas.create_oval(x-10, y-10, x+10, y+10, fill=color, tags=tags)
         self.x = x
         self.y = y
@@ -31,7 +33,10 @@ class Entity:
         return (ax1 < ox2 and ax2 > ox1 and ay1 < oy2 and ay2 > oy1)
 
     def destroy(self):
-        self.canvas.delete(self.id)
+        try:
+            self.canvas.delete(self.id)
+        except Exception:
+            pass
         self.alive = False
 
 class Spaceship(Entity):
@@ -42,7 +47,7 @@ class Spaceship(Entity):
     def __init__(self, canvas):
         super().__init__(canvas, 400, 550, 'cyan', 'spaceship')
         self.speed = 5
-        self.last_shot = 0
+        self.last_shot = 0  # ms
 
     def move(self, dx, dy):
         self.x += dx * self.speed
@@ -51,9 +56,9 @@ class Spaceship(Entity):
         self.y = max(20, min(580, self.y))
 
     def shoot(self, current_time):
-        if current_time - self.last_shot > 300:  # Cooldown
+        if current_time - self.last_shot > 300:  # cooldown in ms
             self.last_shot = current_time
-            return Bullet(self.canvas, self.x, self.y - 15, 'yellow')
+            return Bullet(self.canvas, self.x, self.y - 15, 'yellow', enemy=False)
         return None
 
 class Alien(Entity):
@@ -65,7 +70,8 @@ class Alien(Entity):
         super().__init__(canvas, x, y, 'red', 'alien')
         self.vx = random.choice([-2, 2])
         self.vy = 1
-        self.shoot_timer = random.randint(1000, 3000)
+        self.shoot_timer = random.randint(1000, 3000)  # ms between shots
+        self.last_shot = 0  # last shot timestamp in ms
 
     def move(self):
         self.x += self.vx
@@ -75,13 +81,16 @@ class Alien(Entity):
             self.y += 20  # Drop down
 
     def can_shoot(self, current_time):
-        if current_time % self.shoot_timer == 0:
+        # Shoot if enough ms have passed since last_shot
+        if current_time - self.last_shot >= self.shoot_timer:
+            self.last_shot = current_time
             self.shoot_timer = random.randint(1000, 3000)
             return True
         return False
 
     def shoot(self):
-        return Bullet(self.canvas, self.x, self.y + 15, 'magenta', True)
+        # enemy bullet; enemy=True so Bullet will go down
+        return Bullet(self.canvas, self.x, self.y + 15, 'magenta', enemy=True)
 
 class Planet(Entity):
     """
@@ -89,8 +98,14 @@ class Planet(Entity):
     Inherits from Entity: INHERITANCE.
     """
     def __init__(self, canvas, x, y):
-        super().__init__(canvas, x, y, random.choice(['blue', 'green', 'purple']), 'planet')
+        # pick a color, tag as planet
+        color_choice = random.choice(['blue', 'green', 'purple'])
+        # call Entity to set up common fields (and self.color now exists)
+        super().__init__(canvas, x, y, color_choice, 'planet')
+        # create a larger circle for planet
         self.radius = random.randint(30, 50)
+        # overwrite id with a bigger oval (use saved self.color)
+        self.canvas.delete(self.id)  # remove the small default
         self.id = canvas.create_oval(x-self.radius, y-self.radius, x+self.radius, y+self.radius,
                                      fill=self.color, outline='white', tags='planet')
         self.vy = random.uniform(0.2, 0.5)
@@ -108,9 +123,17 @@ class Bullet(Entity):
     POLYMORPHISM: same class used for player and enemy bullets with direction flag.
     """
     def __init__(self, canvas, x, y, color, enemy=False):
+        # create a small bullet; Entity creates a default oval which we'll resize on first move
         super().__init__(canvas, x, y, color, 'bullet')
-        self.vy = 8 if not enemy else -8
+        # store enemy flag
+        self.enemy = enemy
+        # player bullets go up (negative vy), enemy bullets go down (positive vy)
+        self.vy = -8 if not enemy else 8
         self.size = 4
+
+        # set initial small coords immediately to avoid a large burst on creation
+        self.canvas.coords(self.id, self.x-self.size, self.y-self.size,
+                           self.x+self.size, self.y+self.size)
 
     def move(self):
         self.y += self.vy
@@ -146,6 +169,8 @@ class SpaceExplorerGame:
 
         self.spawn_aliens()
         self.spawn_planets()
+
+        # tick counter not strictly necessary since we use real time, but keep simple
         self.update_game()
 
     def spawn_aliens(self):
@@ -162,8 +187,10 @@ class SpaceExplorerGame:
     def key_press(self, event):
         if event.keysym in self.keys:
             self.keys[event.keysym] = True
+        # allow immediate shooting on key press as well
         if event.keysym == 'space':
-            bullet = self.spaceship.shoot(self.current_time)
+            current_time = int(time.time() * 1000)
+            bullet = self.spaceship.shoot(current_time)
             if bullet:
                 self.bullets.append(bullet)
 
@@ -172,7 +199,8 @@ class SpaceExplorerGame:
             self.keys[event.keysym] = False
 
     def update_game(self):
-        self.current_time = self.root.after_info(0)  # Approximate time
+        # current time in milliseconds
+        current_time = int(time.time() * 1000)
 
         # Player movement POLYMORPHISM: different entities move differently
         dx = 1 if self.keys['Right'] else 0
@@ -184,9 +212,11 @@ class SpaceExplorerGame:
         for bullet in self.bullets[:]:
             bullet.move()
             bullet.draw()
-            if bullet.y < 0 or bullet.y > 620:
+            # remove bullets that go offscreen
+            if bullet.y < -50 or bullet.y > 650:
                 bullet.destroy()
-                self.bullets.remove(bullet)
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
 
         # Update aliens
         for alien in self.aliens[:]:
@@ -195,7 +225,7 @@ class SpaceExplorerGame:
                 alien.draw()
 
                 # Alien shooting
-                if alien.can_shoot(self.current_time):
+                if alien.can_shoot(current_time):
                     bullet = alien.shoot()
                     self.bullets.append(bullet)
 
@@ -203,25 +233,29 @@ class SpaceExplorerGame:
                 if alien.collides_with(self.spaceship):
                     self.lives -= 1
                     alien.destroy()
-                    self.aliens.remove(alien)
+                    if alien in self.aliens:
+                        self.aliens.remove(alien)
                     self.update_ui()
 
                 # Player bullets hit alien
                 for bullet in self.bullets[:]:
-                    if not hasattr(bullet, 'enemy') and bullet.collides_with(alien):
+                    if not getattr(bullet, 'enemy', False) and bullet.collides_with(alien):
                         bullet.destroy()
-                        self.bullets.remove(bullet)
+                        if bullet in self.bullets:
+                            self.bullets.remove(bullet)
                         alien.destroy()
-                        self.aliens.remove(alien)
+                        if alien in self.aliens:
+                            self.aliens.remove(alien)
                         self.score += 10
                         self.update_ui()
                         break
 
             # Enemy bullets hit player
             for bullet in self.bullets[:]:
-                if hasattr(bullet, 'enemy') and bullet.collides_with(self.spaceship):
+                if getattr(bullet, 'enemy', False) and bullet.collides_with(self.spaceship):
                     bullet.destroy()
-                    self.bullets.remove(bullet)
+                    if bullet in self.bullets:
+                        self.bullets.remove(bullet)
                     self.lives -= 1
                     self.update_ui()
                     break
@@ -232,7 +266,8 @@ class SpaceExplorerGame:
             planet.draw()
 
         self.check_game_over()
-        self.root.after(30, self.update_game)  # ~33 FPS
+        # schedule next update (~30 ms for ~33 FPS)
+        self.root.after(30, self.update_game)
 
     def update_ui(self):
         self.canvas.itemconfig(self.score_label, text=f"Score: {self.score}")
