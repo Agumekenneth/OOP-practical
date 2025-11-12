@@ -2,7 +2,7 @@ import tkinter as tk
 import random
 import time
 
-# ========== BASE CLASS (Abstraction + Inheritance) ==========
+# BASE CLASS 
 class GameObject:
     """Base class for all game objects — defines position, drawing, and movement."""
 
@@ -35,7 +35,7 @@ class GameObject:
         return abs(x1 - x2) < self._size and abs(y1 - y2) < other._size
 
 
-# ========== PLAYER CLASS (Encapsulation) ==========
+# PLAYER CLASS (Encapsulation)
 class Player(GameObject):
     """The player spaceship class."""
 
@@ -55,7 +55,7 @@ class Player(GameObject):
         return Bullet(self.canvas, self._x + 12, self._y - 15, -10)
 
 
-# ========== ALIEN CLASS (Polymorphism Example) ==========
+# ALIEN CLASS
 class Alien(GameObject):
     """Alien that moves downwards and side to side."""
 
@@ -74,7 +74,7 @@ class Alien(GameObject):
         self.move(self.vx, self.vy)
 
 
-# ========== PLANET CLASS ==========
+# PLANET CLASS 
 class Planet(GameObject):
     """Decorative planet that floats slowly."""
 
@@ -88,7 +88,7 @@ class Planet(GameObject):
             self.destroy()
 
 
-# ========== BULLET CLASS ==========
+# BULLET CLASS
 class Bullet(GameObject):
     """Bullet fired by player."""
 
@@ -102,7 +102,7 @@ class Bullet(GameObject):
             self.destroy()
 
 
-# ========== MAIN GAME CLASS ==========
+#MAIN GAME CLASS
 class SpaceExplorerGame:
     """Main game controller that manages all objects and game state."""
 
