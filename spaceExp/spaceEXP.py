@@ -108,7 +108,7 @@ class Planet(Entity):
         self.canvas.delete(self.id)  # remove the small default
         self.id = canvas.create_oval(x-self.radius, y-self.radius, x+self.radius, y+self.radius,
                                      fill=self.color, outline='white', tags='planet')
-        self.vy = random.uniform(0.2, 0.5)
+        self.vy = random.uniform(0.05, 0.15)
         self.alive = False  # Decorative, not destructible
 
     def move(self):
@@ -152,7 +152,7 @@ class SpaceExplorerGame:
         self.canvas.pack()
 
         self.score = 0
-        self.lives = 3
+        self.lives = 5
         self.aliens = []
         self.bullets = []
         self.planets = []
