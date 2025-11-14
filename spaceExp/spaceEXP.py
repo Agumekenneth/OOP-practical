@@ -112,7 +112,7 @@ class Player(GameObject):
         self._speed = 15 # Encapsulated property
 
     def move_left(self):
-        if self._x > 0:
+        if self._x > 0:# if your spaceship reaches the left edge, stop it from going further left
             self.move(-self._speed, 0)
 
     def move_right(self):
