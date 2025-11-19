@@ -1,6 +1,7 @@
-class StudentBorrowing:
-    def __init__(self, title, borrower_name, date_borrowed, status):
+class BorrowRecord:
+    def __init__(self, title, borrowerName, dateBorrowed, status):
         self.title = title
-        self.borrower_name = borrower_name
-        self.date_borrowed = date_borrowed
-        self.status = status
+        self._borrowerName = borrowerName
+        self._dateBorrowed = dateBorrowed
+        self._status = status
+        books =[]
