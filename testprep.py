@@ -3,4 +3,4 @@ class StudentBorrowing:
         self.title = title
         self.borrower_name = borrower_name
         self.date_borrowed = date_borrowed
-        self.statius = status
+        self.status = status
