@@ -4,4 +4,11 @@ class BorrowRecord:
         self._borrowerName = borrowerName
         self._dateBorrowed = dateBorrowed
         self._status = status
-        books =[]
+        self.copies = {}
+    def _set_title(self,title):
+        if title.strip() =="":
+            raise ValueError("Title cannot be empty")
+        self.title = title
+
+    
+    
