@@ -35,3 +35,5 @@ class Library:
     def print_summary(self):
         today = date.today().isoformat()
         today_count = sum(1 for r in self.records if r.get_date() == today)
+        print(f"Total books borrowed today: {today_count}")
+
