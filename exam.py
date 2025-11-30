@@ -103,4 +103,28 @@ class BankSystem:
             self.accounts[account_number].check_balance()
         else:
             print('Account not found')
-    
+    def user_interface(self):
+        '''Main user menu loop'''
+        while True:
+            print("\n --- Bank Account Manager ---")
+            print("1. Create Account")
+            print("2. Deposit")
+            print("3. Withdraw")
+            print("4. check balance")
+            print("4. Exit")
+
+            choice = input("Select an option please!!").strip()
+            if choice == '1':
+                self.create_account()
+            elif choice == '2':
+                self.deposit()
+            elif choice == '3':
+                self.withdraw
+            elif choice == '4':
+                self.check_balance
+            else:
+                print(f"Invalid option please!!")
+
+if __name__ == "__main__":
+    bank = BankSystem()
+    bank.user_interface()
