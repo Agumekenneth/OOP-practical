@@ -83,3 +83,24 @@ class BankSystem:
         else:
             print(f"Invalid account type, choose either 'savings' or 'checking' accounts.")
         print(f"{account_type.capitalize()}account {account_number} has been created ")
+    def deposit(self):
+        account_number = input("Enter account number").strip()
+        amount = float(input("Enter the amount you wnat to deposit"))
+        if account_number in self.accounts:
+            self.accounts[account_number].deposit(amount)
+        else:
+            print("Account not found")
+    def withdraw(self):
+        account_number = input("Enter account number").strip()
+        amount = float(input("Enter the withdraw amount"))
+        if account_number in self.accounts:
+            self.accounts[account_number].withdraw(amount)
+        else:
+            print(f"Account not found")
+    def check_balance(self):
+        account_number = input("Enter your account number")
+        if account_number in self.accounts:
+            self.accounts[account_number].check_balance()
+        else:
+            print('Account not found')
+    
